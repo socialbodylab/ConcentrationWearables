@@ -29,6 +29,14 @@ int n=100;
 
 long num = 10;
 
+/* Serial Events */
+
+String inputString = "";         // a string to hold incoming data
+boolean stringComplete = false;  // whether the string is complete
+float current = 0;
+
+/* - */
+
 void setup() 
 {
   // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
@@ -39,13 +47,32 @@ void setup()
   
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+
+  // initialize serial:
+  Serial.begin(9600);
+  // reserve 200 bytes for the inputString:
+  inputString.reserve(200);
 }
 
 void loop() 
 { 
-  //read data from bean
-  num = Bean.readScratchNumber(1);
-  Bean.setScratchNumber(2, num);
+  /* Serial Works */
+   serialEvent();
+
+   if (stringComplete) {
+    current = inputString.toFloat();
+    
+    // clear the string:
+    inputString = "";
+    stringComplete = false;
+  }
+  /* - */
+   
+//  //read data from bean
+//  num = Bean.readScratchNumber(1);
+//  Bean.setScratchNumber(2, num);
+
+  num = current;
   
   //map data to LED color
   Gn = map(num, 0, 10, 50, 5);
@@ -115,4 +142,18 @@ void loop()
   
   delay(10);
 
+}
+
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
 }
