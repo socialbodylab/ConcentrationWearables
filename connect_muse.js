@@ -28,8 +28,15 @@ var noble = require('noble');
 var osc = require('osc-min');
 var dgram = require('dgram');
 var _ = require('lodash');
+var SerialPort = require('serialport').SerialPort;
+
 
 var currentOSC;
+
+var serialport = new SerialPort("/dev/tty.usbmodem1421", 
+    {  baudrate: 9600 });
+
+
 
 /* | OSC Werks
  ---|---------------------------------*/
@@ -80,6 +87,11 @@ getDataFromOSC = function () {
             var actual_value = osc.fromBuffer(msg).args[0].value;
             actual_value = actual_value.map(-0.3,1,0,10);
             currentOSC = actual_value;
+            console.log(currentOSC);
+            serialport.write(currentOSC.toString() + "\n", function(err, results) {
+                console.log('err ' + err);
+                console.log('results ' + results);
+            });
             buf.writeUInt8(currentOSC, 0);
         } catch (_error) {
             error = _error;
@@ -91,7 +103,14 @@ getDataFromOSC = function () {
 
 };
 
-getDataFromOSC();
+serialport.on('open', function(){
+    console.log('Serial Port Opend');
+    getDataFromOSC();
+  
+    serialport.on('data', function(data){
+        console.log(data);
+    });
+});
 
 /* | Bean communication
  ---|---------------------------------*/
@@ -169,29 +188,29 @@ var setupPeripheral = function (peripheral) {
 
 };
 
-noble.on('discover', function (peripheral) {
+// noble.on('discover', function (peripheral) {
 
-    if (_.contains(peripheral.advertisement.serviceUuids, beanUUID)) {
-        console.log("Found a Bean");
-        noble.stopScanning();
-        console.log("Stopped " + "scanning.");
+//     if (_.contains(peripheral.advertisement.serviceUuids, beanUUID)) {
+//         console.log("Found a Bean");
+//         noble.stopScanning();
+//         console.log("Stopped " + "scanning.");
 
-        // Once found, connect:
-        setupPeripheral(peripheral);
+//         // Once found, connect:
+//         setupPeripheral(peripheral);
 
-    } else {
-        console.log("Found a random BLE device, that is not a Bean, ignored.");
-    }
+//     } else {
+//         console.log("Found a random BLE device, that is not a Bean, ignored.");
+//     }
 
-});
+// });
 
 
-noble.on('stateChange', function (state) {
-    if (state == "poweredOn") {
-        console.log("Started Scanning");
-        noble.startScanning();
-    }
-});
+// noble.on('stateChange', function (state) {
+//     if (state == "poweredOn") {
+//         console.log("Started Scanning");
+//         noble.startScanning();
+//     }
+// });
 
 process.stdin.resume(); //so the program will not close instantly
 

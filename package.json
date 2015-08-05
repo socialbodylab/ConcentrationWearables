@@ -6,7 +6,8 @@
   "dependencies": {
     "lodash": "^3.10.0",
     "noble": "^1.0.2",
-    "osc-min": "^0.2.0"
+    "osc-min": "^0.2.0",
+    "serialport": "^1.7.4"
   },
   "devDependencies": {},
   "scripts": {
